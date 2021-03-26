@@ -1,0 +1,29 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Parameters" : {
+    "RepositoryName" : {
+      "Type" : "String",
+      "Description" : "Provide a name for ecr Repository",
+      "Default" : "djangorepo"
+    }
+  },
+  "Resources" : {
+    "ecrRepo" : {
+      "Type" : "AWS::ECR::Repository",
+      "Properties" : {
+        "RepositoryName" : {
+          "Ref" : "RepositoryName"
+        },
+        "ImageScanningConfiguration" : {
+        "ScanOnPush": "true"
+        }
+      }
+     }
+    },
+    "Outputs" : {
+      "RepositoryName" : {
+        "Description" : "Name and Arn of my repo",
+        "Value" : { "Ref" : "ecrRepo"}
+      }
+    }
+}

@@ -1,0 +1,275 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Parameters" : {
+    "ArtifactsBucketName" : {
+      "Type" : "String",
+      "Description" : "Name of your bucket to store artifacts",
+      "Default" : "djangoartifactsbuckkeyy"
+    },
+    "CodePipelineName" : {
+      "Type" : "String",
+      "Description" : "Name of your pipeline",
+      "Default" : "djangocodepipeline"
+    },
+    "CodePipelineRoleName" : {
+      "Type" : "String",
+      "Description" : "Name of your pipeline role ",
+      "Default" : "djangocodepipelinerole"
+    },
+    "CodeBuildRoleName" : {
+      "Type" : "String",
+      "Description" : "Name of your pipeline role ",
+      "Default" : "djangocodebuildrole"
+    },
+    "CodeBuildName" : {
+      "Type" : "String",
+      "Description" : "Name of your build job ",
+      "Default" : "djangobuildimage"
+    },
+
+    "CloneStage" : {
+      "Type" : "String",
+      "Description" : "Clone app your git repo ",
+      "Default" : "djangoappcloner"
+    },
+    "BuildStage" : {
+      "Type" : "String",
+      "Description" : "name of build stage",
+      "Default" : "djangoappbuild"
+    },
+    "GithubUser" : {
+      "Type" : "String",
+      "Description" : "user of your git hub repo ",
+      "Default" : "rkumar.stvl@gmail.com"
+    },
+    "GithubBranch" : {
+      "Type" : "String",
+      "Description" : "your github branch",
+      "Default" : "main"
+    },
+    "GithubRepo" : {
+      "Type" : "String",
+      "Description" : "your github repo url",
+      "Default" : "djangoapp"
+    },
+    "GithubOauthtoken" : {
+      "Type" : "String",
+      "Description" : "Clone app your git repo ",
+      "Default" : "81e8333d6fe311025d6a36ece2bb31431f32449d"
+    }
+  },
+  "Resources" : {
+    "CodepipelineRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+      "RoleName" : {"Ref" : "CodePipelineRoleName"},
+      "AssumeRolePolicyDocument" : {
+        "Statement" : [{
+          "Effect" : "Allow",
+          "Principal" : {
+            "Service" : ["codepipeline.amazonaws.com"]
+          },
+          "Action" : ["sts:AssumeRole"]
+          }]
+        },
+        "Path" : "/",
+        "Policies" : [
+          {
+            "PolicyDocument" : {
+              "Version" : "2012-10-17",
+              "Statement" : [
+                {
+                  "Action" : [
+                    "s3:*",
+                    "cloudformation:CreateStack",
+                    "cloudformation:DescribeStacks",
+                    "cloudformation:DeleteStack",
+                    "cloudformation:UpdateStack",
+                    "cloudformation:CreateChangeSet",
+                    "cloudformation:ExecuteChangeSet",
+                    "cloudformation:DeleteChangeSet",
+                    "cloudformation:DescribeChangeSet",
+                    "cloudformation:SetStackPolicy",
+                    "iam:PassRole",
+                    "sns:Publish",
+                    "codebuild:*",
+                    "codedeploy:*",
+                    "ecs:*",
+                    "ecr:*"
+                  ],
+                  "Effect" : "Allow",
+                  "Resource" : "*"
+                }
+              ]
+            },
+            "PolicyName" : "CodePipelineAccess"
+          }
+        ]
+      }
+    },
+    "ArtifactsBucket" : {
+    "Type" : "AWS::S3::Bucket",
+    "Properties" : {
+        "AccessControl" : "BucketOwnerFullControl",
+        "BucketName" : {"Ref" : "ArtifactsBucketName"},
+        "PublicAccessBlockConfiguration" : {
+          "BlockPublicAcls" : "True",
+          "BlockPublicPolicy" : "True",
+          "IgnorePublicAcls" : "True",
+          "RestrictPublicBuckets" : "True"
+        },
+        "VersioningConfiguration" : { "Status" : "Enabled"}
+      }
+    },
+    "CodeBuildRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+      "RoleName" : {"Ref" : "CodeBuildRoleName"},
+      "AssumeRolePolicyDocument" : {
+        "Statement" : [{
+          "Effect" : "Allow",
+          "Principal" : {
+            "Service" : ["codebuild.amazonaws.com"]
+          },
+          "Action" : ["sts:AssumeRole"]
+          }]
+        },
+        "Path" : "/",
+        "Policies" : [
+          {
+            "PolicyDocument" : {
+              "Version" : "2012-10-17",
+              "Statement" : [
+                {
+                  "Action" : [
+                    "*"
+                  ],
+                  "Effect" : "Allow",
+                  "Resource" : "*"
+                }
+              ]
+            },
+            "PolicyName" : "codebuild-service"
+          }
+        ]
+      }
+    },
+    "CodeBuild" : {
+      "Type" : "AWS::CodeBuild::Project",
+      "DependsOn" : "CodeBuildRole",
+      "Properties" : {
+        "LogsConfig" : {
+          "S3Logs" : {
+            "Status" : "DISABLED"
+          },
+          "CloudWatchLogs" : {
+            "Status" : "ENABLED"
+          }
+        },
+        "TimeoutInMinutes" : 60,
+        "Name" : { "Ref" : "CodeBuildName" },
+        "ServiceRole" : { "Fn::GetAtt" : [ "CodeBuildRole", "Arn" ] },
+        "Artifacts" : {
+          "Type" : "CODEPIPELINE"
+        },
+        "Environment" : {
+          "ComputeType" : "BUILD_GENERAL1_SMALL",
+          "ImagePullCredentialsType" : "CODEBUILD",
+          "PrivilegedMode" : "true",
+          "Image" : "aws/codebuild/standard:1.0-1.8.0",
+          "Type" : "LINUX_CONTAINER"
+        },
+        "Source" : {
+          "BuildSpec" : "buildspec.yml",
+          "Type" : "CODEPIPELINE"
+        },
+        "SecondaryArtifacts" : [],
+        "BadgeEnabled" : "false"
+      }
+    },
+    "CodePipeline" : {
+      "Type" : "AWS::CodePipeline::Pipeline",
+      "Properties" : {
+        "ArtifactStore" : {
+          "Location" : {"Ref" : "ArtifactsBucketName" },
+          "Type" : "S3"
+        },
+        "Name" : { "Ref" : "CodePipelineName"},
+        "RoleArn" : { "Fn::GetAtt" : [ "CodepipelineRole", "Arn" ] },
+        "Stages" : [
+          {
+            "Name" : { "Ref" : "CloneStage" },
+            "Actions" : [{
+              "Name" : { "Ref" : "CloneStage" },
+              "InputArtifacts" : [],
+              "ActionTypeId" : {
+                "Category" : "Source",
+                "Owner" : "ThirdParty",
+                "Provider" : "GitHub",
+                "Version" : "1"
+              },
+              "Configuration" : {
+                "Owner" : { "Ref" : "GithubUser"},
+                "Repo" : { "Ref" : "GithubRepo"},
+                "Branch" : { "Ref" : "GithubBranch"},
+                "PollForSourceChanges" : false,
+                "OAuthToken" : { "Ref" : "GithubOauthtoken"}
+              },
+              "OutputArtifacts" : [
+                {
+                  "Name" : "github-source"
+                }
+              ],
+              "RunOrder" : "1"
+              }
+            ]
+          },
+          {
+            "Name" : { "Ref" : "BuildStage" },
+            "Actions" : [{
+              "Name" : { "Ref" : "BuildStage" },
+              "InputArtifacts" : [{
+                "Name"  : "github-source"
+                }],
+              "ActionTypeId" : {
+                "Category" : "Build",
+                "Owner" : "AWS",
+                "Provider" : "CodeBuild",
+                "Version" : "1"
+              },
+              "Configuration" : {
+                "ProjectName" : { "Ref" : "CodeBuild"}
+              },
+              "OutputArtifacts" : [
+                {
+                  "Name" : "build-artifacts"
+                }
+              ],
+              "RunOrder" : "1",
+              "Region" : "us-east-1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "Webhook" : {
+      "Type" : "AWS::CodePipeline::Webhook",
+      "Properties" : {
+        "AuthenticationConfiguration" : {
+          "SecretToken" : { "Ref" : "GithubOauthtoken" }
+        },
+        "Filters" : [{
+          "JsonPath" : "$.ref",
+          "MatchEquals" : "refs/heads/{Branch}"
+        }],
+        "Authentication" : "GITHUB_HMAC",
+        "TargetPipeline" : { "Ref" : "CodePipeline" },
+        "TargetAction" : {"Ref" : "CloneStage"},
+        "Name" : "webhook",
+        "TargetPipelineVersion" : { "Fn::GetAtt" : [ "CodePipeline", "Version" ] },
+        "RegisterWithThirdParty" : "true"
+      }
+    }
+  }
+}

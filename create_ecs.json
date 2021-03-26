@@ -1,0 +1,273 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Parameters" : {
+    "ECSClusterName" : {
+      "Type" : "String",
+      "Description" : "Name of your ecs cluster",
+      "Default" : "djangoEcsCluster"
+    },
+    "TaskDefinitionFamily" : {
+      "Type" : "String",
+      "Description" : "Name of your task definition",
+      "Default" : "djangotask"
+    },
+
+    "djangoAppContainerPort" : {
+      "Type" : "String",
+      "Description" : "port for django app container",
+      "Default" : "8000"
+    },
+    "logGroupName" : {
+      "Type" : "String",
+      "Description" : "name of log group",
+      "Default" : "djangologs"
+    },
+    "ServiceName" : {
+      "Type" : "String",
+      "Description" : "name of service",
+      "Default" : "djangowebapp"
+    },
+    "TaskDefinitionContainerRoleName" : {
+      "Type" : "String",
+      "Description" : "name of container role",
+      "Default" : "djangoContainerRole"
+    },
+    "CodeDeployEcsRoleName" : {
+      "Type" : "String",
+      "Description" : "name of codedeploy role",
+      "Default" : "djangoCodeDeployRole"
+    },
+    "TargetGroupName" : {
+      "Type" : "String",
+      "Description" : "name of target group",
+      "Default" : "djangoTargetGroup"
+    },
+    "LoadbalancerName" : {
+      "Type" : "String",
+      "Description" : "name of loadbalancer",
+      "Default" : "djangoLoadBalancer"
+    },
+    "networkStackName" : {
+      "Type" : "String",
+      "Description" : "name of your previoulsy launched network stack",
+      "Default" : "network-stack"
+    }
+
+  },
+  "Resources" : {
+    "ECSCluster": {
+      "Type": "AWS::ECS::Cluster",
+      "Properties": {
+          "ClusterName": { "Ref" : "ECSClusterName"}
+      }
+    },
+    "cloudwatchLogGroup" : {
+      "Type" : "AWS::Logs::LogGroup",
+      "Properties" : {
+          "LogGroupName" : { "Ref" : "logGroupName"},
+          "RetentionInDays" : 3
+      }
+    },
+    "TaskDefinitionContainerRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+      "RoleName" : {"Ref" : "TaskDefinitionContainerRoleName"},
+      "AssumeRolePolicyDocument" : {
+        "Statement" : [{
+          "Effect" : "Allow",
+          "Principal" : {
+            "Service" : ["ecs-tasks.amazonaws.com"]
+          },
+          "Action" : ["sts:AssumeRole"]
+          }]
+        },
+        "ManagedPolicyArns" : [
+          "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+        ]
+      }
+    },
+    "CodeDeployEcsRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+      "RoleName" : {"Ref" : "CodeDeployEcsRoleName"},
+      "AssumeRolePolicyDocument" : {
+        "Statement" : [{
+          "Effect" : "Allow",
+          "Principal" : {
+            "Service" : ["codedeploy.amazonaws.com"]
+          },
+          "Action" : ["sts:AssumeRole"]
+          }]
+        },
+        "ManagedPolicyArns" : [
+          "arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS"
+        ]
+      }
+    },
+    "TaskDefinition" : {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties" : {
+        "Family" : { "Ref" : "TaskDefinitionFamily" },
+        "Cpu" : "512",
+        "Memory" : "1024",
+        "RequiresCompatibilities" : [ "FARGATE" ],
+        "NetworkMode" : "awsvpc",
+        "ContainerDefinitions" : [{
+          "Name" : "djangoApp",
+          "Image": "202714190885.dkr.ecr.us-east-1.amazonaws.com/djangorepo:base",
+          "PortMappings":[
+              {
+                "ContainerPort": {"Ref":"djangoAppContainerPort"}
+              }
+           ],
+           "LogConfiguration" : {
+             "LogDriver" : "awslogs",
+             "Options" : {
+               "awslogs-group" : {"Ref" : "cloudwatchLogGroup"},
+               "awslogs-region" : {"Ref" : "AWS::Region" },
+               "awslogs-stream-prefix" : {"Ref" : "ServiceName"}
+             }
+
+           }
+         }
+        ],
+        "TaskRoleArn" : { "Fn::GetAtt" : ["TaskDefinitionContainerRole", "Arn"]},
+        "ExecutionRoleArn" : { "Fn::GetAtt" : ["TaskDefinitionContainerRole", "Arn"]}
+
+      }
+    },
+    "TargetGroup1" : {
+        "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+        "Properties" : {
+            "HealthCheckIntervalSeconds" : 20,
+            "HealthCheckPort" : 8000,
+            "HealthCheckProtocol" : "HTTP",
+            "HealthCheckTimeoutSeconds" : 10,
+            "HealthyThresholdCount" : 3,
+            "TargetType" : "ip",
+            "Name" : { "Ref" : "TargetGroupName"},
+            "Port" : 8000,
+            "Protocol" : "HTTP",
+            "Tags" : [ {
+              "Key" : "Name",
+              "Value" : { "Ref" : "TargetGroupName" }
+              }],
+            "UnhealthyThresholdCount" : 2,
+            "VpcId" : {"Fn::ImportValue" : {"Fn::Sub" : "${networkStackName}-VPCID"}}
+          },
+          "DependsOn" : "LoadBalancer"
+      },
+      "LoadBalancerSecurityGroup" : {
+         "Type" : "AWS::EC2::SecurityGroup",
+         "Properties" : {
+            "GroupDescription" : "Allow http connections all over the internet",
+            "VpcId" : {"Fn::ImportValue" : {"Fn::Sub" : "${networkStackName}-VPCID"}},
+            "SecurityGroupIngress" : [{
+               "IpProtocol" : "tcp",
+               "FromPort" : 80,
+               "ToPort" : 80,
+               "CidrIp" : "0.0.0.0/0"
+            }]
+         }
+      },
+      "ContainerSecurityGroup" : {
+         "Type" : "AWS::EC2::SecurityGroup",
+         "Properties" : {
+            "GroupDescription" : "Allow http connections from loadbalancer to containers",
+            "VpcId" : {"Fn::ImportValue" : {"Fn::Sub" : "${networkStackName}-VPCID"}},
+            "SecurityGroupIngress" : [{
+               "IpProtocol" : "tcp",
+               "FromPort" : 8000,
+               "ToPort" : 8000,
+               "SourceSecurityGroupId" : { "Ref" : "LoadBalancerSecurityGroup"}
+            }]
+         }
+      },
+      "LoadBalancer" : {
+        "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
+        "Properties" : {
+            "IpAddressType" : "ipv4",
+            "Name" : {"Ref" : "LoadbalancerName"},
+            "Scheme" : "internet-facing",
+            "SecurityGroups" : [ {"Ref" : "LoadBalancerSecurityGroup"} ],
+            "Subnets" : [ {"Fn::ImportValue" : {"Fn::Sub" : "${networkStackName}-PublicSubnet1-ID"}}, {"Fn::ImportValue" : {"Fn::Sub" : "${networkStackName}-PublicSubnet2-ID"}} ],
+            "Tags" : [ { "Key" : "Name", "Value" : { "Ref" : "LoadbalancerName"} } ],
+            "Type" : "application"
+          }
+      },
+      "LoadbalancerHTTPlistener": {
+        "Type": "AWS::ElasticLoadBalancingV2::Listener",
+        "Properties": {
+            "DefaultActions": [
+                {
+                    "Type": "forward",
+                    "ForwardConfig": {
+                      "TargetGroups" : [ {
+                        "TargetGroupArn" : {"Ref" : "TargetGroup1"}
+                        }]
+                    }
+               }
+            ],
+            "LoadBalancerArn": {
+                "Ref": "LoadBalancer"
+            },
+            "Port": 80,
+            "Protocol": "HTTP"
+        }
+    },
+    "Service" : {
+      "Type" : "AWS::ECS::Service",
+      "Properties" : {
+      "TaskDefinition" : { "Ref" : "TaskDefinition"},
+      "LaunchType" : "FARGATE",
+      "Cluster" : { "Ref" : "ECSCluster"},
+      "DesiredCount" : 2,
+      "DeploymentConfiguration" : {
+        "MaximumPercent" : 200,
+        "MinimumHealthyPercent" : 100
+      },
+      "NetworkConfiguration" : {
+        "AwsvpcConfiguration" : {
+          "Subnets" : [{"Fn::ImportValue" : {"Fn::Sub" : "${networkStackName}-PrivateSubnet1-ID"}}, {"Fn::ImportValue" : {"Fn::Sub" : "${networkStackName}-PrivateSubnet2-ID"}}],
+          "SecurityGroups" : [ { "Ref" : "ContainerSecurityGroup"}]
+        }
+      },
+      "SchedulingStrategy" : "REPLICA",
+      "LoadBalancers" : [
+        {
+          "ContainerName" : "djangoApp",
+          "ContainerPort" : "8000",
+          "TargetGroupArn" : {
+             "Ref": "TargetGroup1"
+          }
+        }
+      ]
+    }
+   }
+  },
+  "Outputs" : {
+    "ECSCluster" : {
+      "Description" : "ecs cluster name",
+      "Value" : { "Ref" : "ECSCluster"},
+      "Export" : {
+      "Name" : {"Fn::Sub": "${AWS::StackName}-ECSCluster" }
+     }
+   },
+   "TaskDefinition" : {
+     "Description" : "task definition family",
+     "Value" : { "Ref" : "TaskDefinition"},
+     "Export" : {
+     "Name" : {"Fn::Sub": "${AWS::StackName}-TaskDefinitionFamily" }
+    }
+  },
+  "LoadBalancerDns" : {
+    "Description" : "loadblancer dns",
+    "Value" : { "Fn::GetAtt" : [ "LoadBalancer", "DNSName" ] },
+    "Export" : {
+    "Name" : {"Fn::Sub": "${AWS::StackName}-LoadbalancerDns" }
+   }
+ }
+
+
+  }
+}

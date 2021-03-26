@@ -1,0 +1,315 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Parameters" : {
+    "VPCNAME" : {
+      "Type" : "String",
+      "Description" : "Name of your vpc",
+      "Default" : "djangoVpc"
+    },
+    "VPCCIDR" : {
+      "Type" : "String",
+      "Description" : "Enter your vpc cidr",
+      "Default" : "10.0.0.0/16"
+    },
+    "PublicSubnet1Name" : {
+      "Type" : "String",
+      "Description" : "Name of PublicSubnet1",
+      "Default" : "djangoPublicSubnet1"
+    },
+    "PublicSubnet2Name" : {
+      "Type" : "String",
+      "Description" : "Name of PublicSubnet2",
+      "Default" : "djangoPublicSubnet2"
+    },
+    "PrivateSubnet1Name" : {
+      "Type" : "String",
+      "Description" : "Name of PrivateSubnet1",
+      "Default" : "djangoPrivateSubnet1"
+    },
+    "PrivateSubnet2Name" : {
+      "Type" : "String",
+      "Description" : "Name of PrivateSubnet2",
+      "Default" : "djangoPrivateSubnet2"
+    },
+    "PublicSubnet1CIDR" : {
+      "Type" : "String",
+      "Description" : "cidr of PublicSubnet1",
+      "Default" : "10.0.0.0/24"
+    },
+    "PublicSubnet2CIDR" : {
+      "Type" : "String",
+      "Description" : "cidr of PublicSubnet2",
+      "Default" : "10.0.1.0/24"
+    },
+    "PrivateSubnet1CIDR" : {
+      "Type" : "String",
+      "Description" : "cidr of PrivateSubnet1",
+      "Default" : "10.0.2.0/24"
+    },
+    "PrivateSubnet2CIDR" : {
+      "Type" : "String",
+      "Description" : "cidr of PrivateSubnet2",
+      "Default" : "10.0.3.0/24"
+    },
+    "InternetGatewayName" : {
+      "Type" : "String",
+      "Description" : "name of internet gateway",
+      "Default" : "djangoIgw"
+    },
+    "PublicRouteTableName" : {
+      "Type" : "String",
+      "Description" : "name of PublicRouteTable",
+      "Default" : "djangoPublicRouteTable"
+    },
+
+    "PrivateRouteTableName" : {
+      "Type" : "String",
+      "Description" : "name of PrivateRouteTable",
+      "Default" : "djangoPrivateRouteTable"
+    },
+    "EIPNAME" : {
+      "Type" : "String",
+      "Description" : "name of EIP",
+      "Default" : "djangoEIP"
+    },
+    "NATGatewayName" : {
+      "Type" : "String",
+      "Description" : "name of NAT",
+      "Default" : "djangoNAT"
+    }
+  },
+
+  "Resources" : {
+    "VPC" : {
+      "Type" : "AWS::EC2::VPC",
+      "Properties" : {
+      "CidrBlock" : {"Ref" : "VPCCIDR"},
+      "Tags" : [{
+        "Key" : "Name",
+        "Value" : { "Ref" : "VPCNAME"}
+        }]
+     }
+   },
+   "PublicSubnet1" : {
+     "Type" : "AWS::EC2::Subnet",
+     "Properties" : {
+      "AvailabilityZone" : {
+      "Fn::Select" : [
+        "0",
+        {
+          "Fn::GetAZs" : ""
+        }
+       ]
+      },
+      "CidrBlock" : { "Ref" : "PublicSubnet1CIDR"},
+      "VpcId" : {"Ref" : "VPC"},
+      "Tags" : [{
+        "Key" : "Name",
+        "Value" : { "Ref" : "PublicSubnet1Name"}
+        }]
+      }
+   },
+   "PublicSubnet2" : {
+     "Type" : "AWS::EC2::Subnet",
+     "Properties" : {
+      "AvailabilityZone" : {
+      "Fn::Select" : [
+        "1",
+        {
+          "Fn::GetAZs" : ""
+        }
+       ]
+      },
+      "CidrBlock" : { "Ref" : "PublicSubnet2CIDR"},
+      "VpcId" : {"Ref" : "VPC"},
+      "Tags" : [{
+        "Key" : "Name",
+        "Value" : { "Ref" : "PublicSubnet2Name"}
+        }]
+      }
+   },
+   "PrivateSubnet1" : {
+     "Type" : "AWS::EC2::Subnet",
+     "Properties" : {
+      "AvailabilityZone" : {
+      "Fn::Select" : [
+        "0",
+        {
+          "Fn::GetAZs" : ""
+        }
+       ]
+      },
+      "CidrBlock" : { "Ref" : "PrivateSubnet1CIDR"},
+      "VpcId" : {"Ref" : "VPC"},
+      "Tags" : [{
+        "Key" : "Name",
+        "Value" : { "Ref" : "PrivateSubnet1Name"}
+        }]
+      }
+   },
+   "PrivateSubnet2" : {
+     "Type" : "AWS::EC2::Subnet",
+     "Properties" : {
+      "AvailabilityZone" : {
+      "Fn::Select" : [
+        "1",
+        {
+          "Fn::GetAZs" : ""
+        }
+       ]
+      },
+      "CidrBlock" : { "Ref" : "PrivateSubnet2CIDR"},
+      "VpcId" : {"Ref" : "VPC"},
+      "Tags" : [{
+        "Key" : "Name",
+        "Value" : { "Ref" : "PrivateSubnet2Name"}
+        }]
+   }
+ },
+   "InternetGateway" : {
+     "Type" : "AWS::EC2::InternetGateway",
+     "Properties" : {
+      "Tags" : [{
+        "Key" : "Name",
+        "Value" : { "Ref" : "InternetGatewayName"}
+        }]
+    }
+   },
+   "InternetGatewayAttachment" : {
+     "Type" : "AWS::EC2::VPCGatewayAttachment",
+     "Properties" : {
+      "InternetGatewayId" : {"Ref" : "InternetGateway"},
+      "VpcId" : {"Ref" : "VPC"}
+    },
+    "DependsOn" : [ "InternetGateway" ]
+   },
+   "PublicRouteTable" : {
+     "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+      "VpcId" : { "Ref" : "VPC" },
+      "Tags" : [ {
+        "Key" : "Name",
+        "Value" : { "Ref" : "PublicRouteTableName"}
+        }]
+    }
+   },
+   "PrivateRouteTable" : {
+     "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+      "VpcId" : { "Ref" : "VPC" },
+      "Tags" : [ {
+        "Key" : "Name",
+        "Value" : { "Ref" : "PrivateRouteTableName"}
+        }]
+    }
+   },
+
+   "PublicRouteTableSubnet1Assoc" : {
+    "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+    "Properties" : {
+        "RouteTableId" : { "Ref" : "PublicRouteTable" },
+        "SubnetId" : { "Ref" : "PublicSubnet1"}
+      }
+  },
+  "PublicRouteTableSubnet2Assoc" : {
+   "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties" : {
+       "RouteTableId" : { "Ref" : "PublicRouteTable" },
+       "SubnetId" : { "Ref" : "PublicSubnet2"}
+     }
+ },
+   "PrivateRouteTableSubnet1Assoc" : {
+    "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+    "Properties" : {
+        "RouteTableId" : { "Ref" : "PrivateRouteTable" },
+        "SubnetId" : { "Ref" : "PrivateSubnet1"}
+      }
+  },
+  "PrivateRouteTableSubnet2Assoc" : {
+   "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties" : {
+       "RouteTableId" : { "Ref" : "PrivateRouteTable" },
+       "SubnetId" : { "Ref" : "PrivateSubnet2"}
+     }
+  },
+
+  "myPublicRoute" : {
+     "Type" : "AWS::EC2::Route",
+     "DependsOn" : "InternetGateway",
+     "Properties" : {
+        "RouteTableId" : { "Ref" : "PublicRouteTable" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : { "Ref" : "InternetGateway" }
+     }
+  },
+  "ElastiIp" : {
+    "Type" : "AWS::EC2::EIP",
+    "Properties" : {
+    "Tags" : [ {
+      "Key" : "Name",
+      "Value" : { "Ref" : "EIPNAME" }
+       }]
+     },
+     "DependsOn" : "InternetGatewayAttachment"
+   },
+   "NatGateway" : {
+    "Type" : "AWS::EC2::NatGateway",
+    "Properties" : {
+        "AllocationId" : { "Fn::GetAtt" : ["ElastiIp", "AllocationId"]},
+        "SubnetId" : { "Ref" : "PublicSubnet1"},
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : { "Ref" : "NATGatewayName"}
+        }]
+      },
+    "DependsOn" : "ElastiIp"
+    },
+  "PrivateRoute" : {
+     "Type" : "AWS::EC2::Route",
+     "Properties" : {
+        "RouteTableId" : { "Ref" : "PrivateRouteTable" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "NatGatewayId" : { "Ref" : "NatGateway" }
+      },
+      "DependsOn" : "NatGateway"
+    }
+  },
+  "Outputs" : {
+    "VPC" : {
+      "Description" : "VPC ID",
+      "Value" : { "Ref" : "VPC"},
+      "Export" : {
+      "Name" : {"Fn::Sub": "${AWS::StackName}-VPCID" }
+    }
+    },
+    "PublicSubnet1" : {
+      "Description" : "pub sub 1  ID",
+      "Value" : { "Ref" : "PublicSubnet1"},
+      "Export" : {
+      "Name" : {"Fn::Sub": "${AWS::StackName}-PublicSubnet1-ID" }
+     }
+    },
+    "PublicSubnet2" : {
+      "Description" : "pub sub 2 ID",
+      "Value" : { "Ref" : "PublicSubnet2"},
+      "Export" : {
+      "Name" : {"Fn::Sub": "${AWS::StackName}-PublicSubnet2-ID" }
+     }
+    },
+    "PrivateSubnet1" : {
+      "Description" : "pri sub 1 ID",
+      "Value" : { "Ref" : "PrivateSubnet1"},
+      "Export" : {
+      "Name" : {"Fn::Sub": "${AWS::StackName}-PrivateSubnet1-ID" }
+     }
+    },
+    "PrivateSubnet2" : {
+      "Description" : "pri sub 2 ID",
+      "Value" : { "Ref" : "PrivateSubnet2"},
+      "Export" : {
+      "Name" : {"Fn::Sub": "${AWS::StackName}-PrivateSubnet2-ID" }
+     }
+    }
+  }
+
+}
