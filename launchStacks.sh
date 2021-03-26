@@ -48,8 +48,13 @@ echo "ecs stack successfully created"
 
 #launching codepipeleine stack
 echo "Launching codepipeline stack ..."
-aws cloudformation create-stack --stack-name codepipeline-stack --template-body file://create_code_pipeline.json --region $region --profile $profile --capabilities CAPABILITY_NAMED_IAM > ecs-stack.output
+aws cloudformation create-stack --stack-name codepipeline-stack --template-body file://create_code_pipeline.json --region $region --profile $profile --capabilities CAPABILITY_NAMED_IAM > codepipeline-stack.output
 cat codepipeline-stack.output
 echo "Waiting for stack resources to be created ..."
 sleep 300
 echo "codepipeline stack successfully created"
+
+
+#get Loadbalancer dns 
+LBDNS=`aws cloudformation describe-stacks --stack-name ecs-stack --profile $profile --region $region | grep LoadBalancer | tail -1 | awk '{print $2}'`
+echo "Access $LBDNS to view application"
