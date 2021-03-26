@@ -4,7 +4,7 @@
     "ArtifactsBucketName" : {
       "Type" : "String",
       "Description" : "Name of your bucket to store artifacts",
-      "Default" : "djangoartifactsbuckkeyyyo"
+      "Default" : "djangoartifactsbuckkeyyyof"
     },
     "CodePipelineName" : {
       "Type" : "String",
@@ -71,7 +71,7 @@
     "GithubOauthtoken" : {
       "Type" : "String",
       "Description" : "Clone app your git repo ",
-      "Default" : "f8a7c78cab019b8ed282c0d62c32b96374416e33"
+      "Default" : "23c1d249e2bc77b5ec171ce2d86cb5e3eb41acc0"
     },
     "ecsStackName" : {
       "Type" : "String",
@@ -288,8 +288,9 @@
                   },
                   "OutputArtifacts" : [],
                   "Configuration" : {
-                    "ClusterName": {"Fn::Sub" : "${ecsStackName}-ECSCluster"},
-                    "ServiceName": {"Fn::Sub" : "${ecsStackName}-ServiceName"}
+                    "ClusterName": {"Fn::ImportValue" : {"Fn::Sub" : "${ecsStackName}-ECSCluster"}},
+                    "ServiceName": {"Fn::ImportValue" : {"Fn::Sub" : "${ecsStackName}-ServiceName"}}
+
                   },
                   "RunOrder" : "1"
               }
