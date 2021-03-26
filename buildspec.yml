@@ -25,6 +25,6 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
-      - printf '[{"name":"djangoApp","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - sed -i s@"202714190885.dkr.ecr.us-east-1.amazonaws.com/djangorepo:base"@"$REPOSITORY_URI:$IMAGE_TAG"@g > imagedefinitions.json
 artifacts:
     files: imagedefinitions.json
