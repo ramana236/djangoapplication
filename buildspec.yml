@@ -9,7 +9,7 @@ phases:
       - echo Logging in to Amazon ECR...
       - aws --version
       - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
-      - REPOSITORY_URI=202714190885.dkr.ecr.ap-south-1.amazonaws.com/djangorepo
+      - REPOSITORY_URI=202714190885.dkr.ecr.us-east-1.amazonaws.com/djangorepo
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
@@ -25,7 +25,7 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
-      - sed -i s@"202714190885.dkr.ecr.ap-south-1.amazonaws.com/djangorepo:base"@"$REPOSITORY_URI:$IMAGE_TAG"@g imagedefinitions.json
+      - sed -i s@"202714190885.dkr.ecr.us-east-1.amazonaws.com/djangorepo:base"@"$REPOSITORY_URI:$IMAGE_TAG"@g imagedefinitions.json
       - cat imagedefinitions.json
       - ls -ltr
 artifacts:

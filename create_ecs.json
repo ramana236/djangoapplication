@@ -114,7 +114,7 @@
         "NetworkMode" : "awsvpc",
         "ContainerDefinitions" : [{
           "Name" : "djangoApp",
-          "Image": "202714190885.dkr.ecr.ap-south-1.amazonaws.com/djangorepo:base",
+          "Image": "202714190885.dkr.ecr.us-east-1.amazonaws.com/djangorepo:base",
           "PortMappings":[
               {
                 "ContainerPort": {"Ref":"djangoAppContainerPort"}
