@@ -313,8 +313,7 @@
                   },
                   "OutputArtifacts" : [],
                   "Configuration" : {
-                    "ActionMode": "CHANGE_SET_REPLACE",
-                    "ChangeSetName": "ecs-changeset",
+                    "ActionMode": "CREATE_UPDATE",
                     "RoleArn":  { "Fn::GetAtt" : [ "CodeDeployRole", "Arn" ] },
                     "Capabilities": "CAPABILITY_NAMED_IAM",
                     "StackName": "ecs-stack",
