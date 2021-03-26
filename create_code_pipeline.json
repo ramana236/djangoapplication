@@ -71,7 +71,7 @@
     "GithubOauthtoken" : {
       "Type" : "String",
       "Description" : "Clone app your git repo ",
-      "Default" : "23c1d249e2bc77b5ec171ce2d86cb5e3eb41acc0"
+      "Default" : "c40ea1643be5bd8e956a0566999ced9940c53d02"
     },
     "ecsStackName" : {
       "Type" : "String",
