@@ -263,7 +263,9 @@
                 "Name" : {"Ref" : "DeployStage"},
                 "InputArtifacts" : [{
                   "Name" : "build-artifacts"
-                  }],
+                  }, {
+                    "Name" : "github-source"
+                    }],
                   "Region" : "us-east-1",
                   "ActionTypeId" : {
                     "Category" : "Deploy",
@@ -278,7 +280,7 @@
                     "RoleArn": "arn:aws:iam::202714190885:role/CloudFormationRole",
                     "Capabilities": "CAPABILITY_NAMED_IAM",
                     "StackName": "ecs-stack",
-                    "TemplatePath": "build-artifacts::create_ecs.json"
+                    "TemplatePath": "github-source::create_ecs.json"
                   },
                   "RunOrder" : "1"
               }
