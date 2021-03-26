@@ -3,7 +3,7 @@
 Are you looking for an easy solution to host highly reliable containerised django application ? <br/>
 Would you need a quick CI/CD pipeline to deploy your service with new features ?
 
-## Your search ends here, here is what you can get from this repo
+## Your search ends here, features you can get from this repo
 
 - [x] Cloudformation stacks to launch your infra on ECS platform
 - [x] Intutive CI/CD pipeline to deploy new features
