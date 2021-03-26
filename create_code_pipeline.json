@@ -306,9 +306,7 @@
                 "Name" : {"Ref" : "DeployStage"},
                 "InputArtifacts" : [{
                   "Name" : "build-artifacts"
-                  }, {
-                    "Name" : "github-source"
-                    }],
+                  }],
                   "Region" : "us-east-1",
                   "ActionTypeId" : {
                     "Category" : "Deploy",
@@ -319,8 +317,7 @@
                   "OutputArtifacts" : [],
                   "Configuration" : {
                     "ClusterName": "djangoEcsCluster",
-                    "ServiceName": "ecs-stack-Service-KLidA5dyE9JV",
-                    "RoleArn":  { "Fn::GetAtt" : [ "CodeDeployRole", "Arn" ] }
+                    "ServiceName": "ecs-stack-Service-KLidA5dyE9JV"
                   },
                   "RunOrder" : "1"
               }
