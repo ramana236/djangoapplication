@@ -175,39 +175,6 @@
         ]
       }
     },
-    "CodeDeployRole" : {
-      "Type": "AWS::IAM::Role",
-      "Properties" : {
-      "RoleName" : {"Ref" : "CodeDeployRoleName"},
-      "AssumeRolePolicyDocument" : {
-        "Statement" : [{
-          "Effect" : "Allow",
-          "Principal" : {
-            "Service" : ["cloudformation.amazonaws.com"]
-          },
-          "Action" : ["sts:AssumeRole"]
-          }]
-        },
-        "Path" : "/",
-        "Policies" : [
-          {
-            "PolicyDocument" : {
-              "Version" : "2012-10-17",
-              "Statement" : [
-                {
-                  "Action" : [
-                    "*"
-                  ],
-                  "Effect" : "Allow",
-                  "Resource" : "*"
-                }
-              ]
-            },
-            "PolicyName" : "codedeploy-service"
-          }
-        ]
-      }
-    },
     "CodeBuild" : {
       "Type" : "AWS::CodeBuild::Project",
       "DependsOn" : "CodeBuildRole",
@@ -321,8 +288,8 @@
                   },
                   "OutputArtifacts" : [],
                   "Configuration" : {
-                    "ClusterName": {"Fn::Sub" : "${ecsStackName}-ECSCluster"}},
-                    "ServiceName": {"Fn::Sub" : "${ecsStackName}-ServiceName"}}
+                    "ClusterName": {"Fn::Sub" : "${ecsStackName}-ECSCluster"},
+                    "ServiceName": {"Fn::Sub" : "${ecsStackName}-ServiceName"}
                   },
                   "RunOrder" : "1"
               }

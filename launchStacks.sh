@@ -13,7 +13,7 @@ cat ecr-stack.output
 sleep 15
 
 #Get repo login details
-AccountNumber=`cat ecr-stack.output | head -2 | awk -F ":" '{print $6}'`
+AccountNumber=`cat ecr-stack.output | head -2 | awk -F ":" '{print $6}' | awk NF`
 loginString="$AccountNumber.dkr.ecr.$region.amazonaws.com"
 imageTag="$loginString/djangorepo"
 
