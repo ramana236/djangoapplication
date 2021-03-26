@@ -266,7 +266,15 @@
     "Export" : {
     "Name" : {"Fn::Sub": "${AWS::StackName}-LoadbalancerDns" }
    }
- }
+ },
+ "ServiceName" : {
+   "Description" : "ecs service name",
+   "Value" : { "Fn::GetAtt" : [ "Service", "Name" ] },
+   "Export" : {
+   "Name" : {"Fn::Sub": "${AWS::StackName}-ServiceName" }
+  }
+}
+
 
 
   }

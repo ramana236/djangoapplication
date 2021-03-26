@@ -1,5 +1,8 @@
-region="us-east-1"
-profile="assignment"
+region=${1:-$(read -p "Enter region : " x && echo "$x")}
+profile=${2:-$(read -p "Enter profile name : " x && echo "$x")}
+
+
+echo "considering region as $region and profile as $profile"
 
 
 #This command creates ecs ecr stack
@@ -11,7 +14,7 @@ sleep 15
 
 #Get repo login details
 AccountNumber=`cat ecr-stack.output | head -2 | awk -F ":" '{print $6}'`
-loginString="$AccountNumber.dkr.ecr.us-east-1.amazonaws.com"
+loginString="$AccountNumber.dkr.ecr.$region.amazonaws.com"
 imageTag="$loginString/djangorepo"
 
 #Buid base image and push to the Repository
@@ -20,6 +23,7 @@ docker build -t $imageTag:base .
 aws ecr get-login-password --region $region --profile $profile | docker login --username AWS --password-stdin $loginString
 docker push $imageTag:base
 
+sed -i  '' s@"202714190885.dkr.ecr.us-east-1.amazonaws.com/djangorepo:base"@"$imageTag:base"@g create_ecs.json
 echo "*****Base Image successfully pushed to repo ******"
 
 #Launch VPC stack
@@ -29,6 +33,8 @@ cat vpc-stack.output
 echo "Waiting for stack resources to be created ..."
 sleep 300
 echo "Network stack successfully created"
+
+
 #Launch ECS stack
 echo "Launching ecs stack ..."
 aws cloudformation create-stack --stack-name ecs-stack --template-body file://create_ecs.json --region $region --profile $profile --capabilities CAPABILITY_NAMED_IAM > ecs-stack.output

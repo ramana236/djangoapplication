@@ -24,6 +24,13 @@
       "RepositoryName" : {
         "Description" : "Name and Arn of my repo",
         "Value" : { "Ref" : "ecrRepo"}
-      }
+      },
+      "RepositoryArn" : {
+        "Description" : "ecr repository arn",
+        "Value" : { "Fn::GetAtt" : [ "ecrRepo", "Arn" ] },
+        "Export" : {
+        "Name" : {"Fn::Sub": "${AWS::StackName}-ecrArn" }
+       }
+     }
     }
 }

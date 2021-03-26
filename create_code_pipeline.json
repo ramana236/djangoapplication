@@ -4,7 +4,7 @@
     "ArtifactsBucketName" : {
       "Type" : "String",
       "Description" : "Name of your bucket to store artifacts",
-      "Default" : "djangoartifactsbuckkeyy"
+      "Default" : "djangoartifactsbuckkeyyyo"
     },
     "CodePipelineName" : {
       "Type" : "String",
@@ -72,6 +72,11 @@
       "Type" : "String",
       "Description" : "Clone app your git repo ",
       "Default" : "f8a7c78cab019b8ed282c0d62c32b96374416e33"
+    },
+    "ecsStackName" : {
+      "Type" : "String",
+      "Description" : "name of your previoulsy launched ecs stack",
+      "Default" : "ecs-stack"
     }
   },
   "Resources" : {
@@ -295,7 +300,7 @@
                 }
               ],
               "RunOrder" : "1",
-              "Region" : "us-east-1"
+              "Region" : {"Ref" : "AWS::Region" }
               }
             ]
           },
@@ -307,7 +312,7 @@
                 "InputArtifacts" : [{
                   "Name" : "build-artifacts"
                   }],
-                  "Region" : "us-east-1",
+                  "Region" : {"Ref" : "AWS::Region" },
                   "ActionTypeId" : {
                     "Category" : "Deploy",
                     "Owner" : "AWS",
@@ -316,8 +321,8 @@
                   },
                   "OutputArtifacts" : [],
                   "Configuration" : {
-                    "ClusterName": "djangoEcsCluster",
-                    "ServiceName": "ecs-stack-Service-KLidA5dyE9JV"
+                    "ClusterName": {"Fn::Sub" : "${ecsStackName}-ECSCluster"}},
+                    "ServiceName": {"Fn::Sub" : "${ecsStackName}-ServiceName"}}
                   },
                   "RunOrder" : "1"
               }
