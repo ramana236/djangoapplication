@@ -36,3 +36,15 @@ cat ecs-stack.output
 echo "Waiting for stack resources to be created ..."
 sleep 300
 echo "ecs stack successfully created"
+
+#Replace image uri in buildspec Filters
+sed -i '' s@"202714190885.dkr.ecr.us-east-1.amazonaws.com/djangorepo"@"$imageTag"@g buildspec.yml
+
+
+#launching codepipeleine stack
+echo "Launching codepipeline stack ..."
+aws cloudformation create-stack --stack-name codepipeline-stack --template-body file://create_code_pipeline.json --region $region --profile $profile --capabilities CAPABILITY_NAMED_IAM > ecs-stack.output
+cat codepipeline-stack.output
+echo "Waiting for stack resources to be created ..."
+sleep 300
+echo "codepipeline stack successfully created"

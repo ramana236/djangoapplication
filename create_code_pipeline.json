@@ -37,6 +37,12 @@
       "Description" : "name of build stage",
       "Default" : "djangoappbuild"
     },
+    "DeployStage" : {
+      "Type" : "String",
+      "Description" : "name of deploy stage",
+      "Default" : "djangoappdeploy"
+    },
+
     "GithubUser" : {
       "Type" : "String",
       "Description" : "user of your git hub repo ",
@@ -247,6 +253,34 @@
               ],
               "RunOrder" : "1",
               "Region" : "us-east-1"
+              }
+            ]
+          },
+          {
+            "Name" : {"Ref" : "DeployStage"},
+            "Actions" : [
+              {
+                "Name" : {"Ref" : "DeployStage"},
+                "InputArtifacts" : [{
+                  "Name" : "build-artifacts"
+                  }],
+                  "Region" : "us-east-1",
+                  "ActionTypeId" : {
+                    "Category" : "Deploy",
+                    "Owner" : "AWS",
+                    "Provider" : "CloudFormation",
+                    "Version" : "1"
+                  },
+                  "OutputArtifacts" : [],
+                  "Configuration" : {
+                    "ActionMode": "CHANGE_SET_REPLACE",
+                    "ChangeSetName": "ecs-changeset",
+                    "RoleArn": "arn:aws:iam::202714190885:role/CloudFormationRole",
+                    "Capabilities": "CAPABILITY_NAMED_IAM",
+                    "StackName": "ecs-stack",
+                    "TemplatePath": "build-artifacts::create_ecs.json"
+                  },
+                  "RunOrder" : "1"
               }
             ]
           }
