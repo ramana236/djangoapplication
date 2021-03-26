@@ -1,6 +1,6 @@
 # Easy launch repo to host and deploy django web application
 
-Are you looking for an easy solution to host highly reliable containerised django application ? \n
+Are you looking for an easy solution to host highly reliable containerised django application ? <br/>
 Would you need a quick CI/CD pipeline to deploy your service with new features ?
 
 ## Your search ends here, here is what you can get from this repo
@@ -50,7 +50,7 @@ Refer how to configure  [aws profile](https://docs.aws.amazon.com/cli/latest/use
 Infrastructure stack is segregated as micro stacks like below
 
 * Elastic container registry
-  `create_ecr_repo.json` launches an ecr repo in specified region \n
+  `create_ecr_repo.json` launches an ecr repo in specified region <br/>
   **Image Scanning** is enabled on every image uploaded to enhance security
 
   ##Customisation
@@ -97,19 +97,19 @@ Infrastructure stack is segregated as micro stacks like below
 
 * Codepipeline
    * Source
-   Considering the source of our application would be github \n
+   Considering the source of our application would be github <br/>
     - /
       - app
          - cf-example-python-django
 
-         All the content related to django web app resides in this folder \n
+         All the content related to django web app resides in this folder <br/>
          Feel free to add your application content to this folder and it auto deploys your latest content through codepipeline
-   * Code Build \n
-     AWS code build service uses `buildspec.yml` file to create a new image on every push using the docker file \n
-     These new image tags are replaced in `imagedefinitions.json` file \n
+   * Code Build <br/>
+     AWS code build service uses `buildspec.yml` file to create a new image on every push using the docker file <br/>
+     These new image tags are replaced in `imagedefinitions.json` file <br/>
      With every new commit a new image with tag of commit id will be pushed to ecr
 
-   * Code Deploy \n
+   * Code Deploy <br/>
      One every new image, a new task revision will be created and the ecs service will be updated with new task revision
 
 
