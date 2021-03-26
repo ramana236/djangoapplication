@@ -47,6 +47,11 @@
       "Description" : "name of deploy stage",
       "Default" : "djangoappdeploy"
     },
+    "DeployStageOnEcs" : {
+      "Type" : "String",
+      "Description" : "name of deploy stage",
+      "Default" : "djangoappdeployecs"
+    },
 
     "GithubUser" : {
       "Type" : "String",
@@ -313,13 +318,36 @@
                   },
                   "OutputArtifacts" : [],
                   "Configuration" : {
-                    "ActionMode": "CREATE_UPDATE",
+                    "ActionMode": "CHANGE_SET_REPLACE",
+                    "ChangeSetName": "ecs-changeset",
                     "RoleArn":  { "Fn::GetAtt" : [ "CodeDeployRole", "Arn" ] },
                     "Capabilities": "CAPABILITY_NAMED_IAM",
                     "StackName": "ecs-stack",
                     "TemplatePath": "github-source::create_ecs.json"
                   },
                   "RunOrder" : "1"
+              },
+              {
+                "Name" : {"Ref" : "DeployStageOnEcs"},
+                "InputArtifacts" : [{
+                  "Name" : "build-artifacts"
+                  }, {
+                    "Name" : "github-source"
+                    }],
+                  "Region" : "us-east-1",
+                  "ActionTypeId" : {
+                    "Category" : "Deploy",
+                    "Owner" : "AWS",
+                    "Provider" : "CloudFormation",
+                    "Version" : "1"
+                  },
+                  "OutputArtifacts" : [],
+                  "Configuration" : {
+                    "ActionMode": "CHANGE_SET_EXECUTE",
+                    "ChangeSetName": "ecs-changeset",
+                    "StackName": "ecs-stack"
+                  },
+                  "RunOrder" : "2"
               }
             ]
           }
