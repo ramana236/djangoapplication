@@ -122,3 +122,4 @@ Infrastructure stack is segregated as micro stacks like below
 
 * Cloudfront in combination with WAF to protect your public endpoint from ddos attacks
 * A https listner with SSL enabled and a redirect on your load balancer
+* Guardduty, config, cloutrail to secure account and alert on anomalies
